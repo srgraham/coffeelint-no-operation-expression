@@ -1,0 +1,26 @@
+{
+  "name": "coffeelint-no-operation-expression",
+  "version": "0.0.1",
+  "description": "Coffeelint rule that detects code that doesn't do anything",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srgraham/coffeelint-no-operation-expression.git"
+  },
+  "keywords": [
+    "coffeelint",
+    "coffeelintrule",
+    "coffeelint-rule",
+    "coffee-lint",
+    "useless"
+  ],
+  "author": "Scott Graham",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/srgraham/coffeelint-no-operation-expression/issues"
+  },
+  "homepage": "https://github.com/srgraham/coffeelint-no-operation-expression"
+}
