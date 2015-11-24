@@ -25,7 +25,7 @@ npm install coffeelint-no-operation-expression
 Add the following configuration to coffeelint.json:
 
 ```json
-"unreachable_code_after_return": {
+"no_operation_expression": {
   "module": "coffeelint-no-operation-expression"
 }
 ```
