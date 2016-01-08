@@ -2,6 +2,23 @@
 getNodeType = (node)->
   return node.constructor.name
 
+cloneStack = (stack)->
+  out = []
+  stack.forEach (val)->
+    out.push val
+    return
+  return out
+
+dumpStack = (stack)->
+  out = []
+  for i in stack
+    out.push getNodeType(i)
+  return out
+
+var_skip_arr = ['expect', 'assert']
+
+# CodeFragment, Base, Block, Literal, Undefined, Null, Bool, Return, Value, Comment, Call, Extends, Access, Index, Range, Slice, Obj, Arr, Class, Assign, Code, Param, Splat, Expansion, While, Op, In, Try, Throw, Existence, Parens, For, Switch, If,
+
 module.exports = class NoOperationExpression
   rule:
     name: 'no_operation_expression'
@@ -22,68 +39,75 @@ module.exports = class NoOperationExpression
 
   lintAST: (node, astApi) ->
     @astApi = astApi
-    @lintNode node, 0
-    return
+    @lintNode node, []
 
-  lintBlock: (node)->
-#    console.log 'hit block. childrens:'
-    child_count = 0
-    node.eachChild ()->
-      child_count += 1
-      return
-
-#    console.log "has #{child_count} children"
-
-
-    skip_count = 0
     node.eachChild (child)=>
-      if skip_count > 0
-        skip_count -= 1
-        return
+      @lintBodyChild child
+      return
 
-#      console.log getNodeType child
+    return
 
+  lintNode: (node, stack)->
+    node_type = getNodeType(node)
+    stack = cloneStack(stack)
+    stack.push node
 
-      switch getNodeType(child)
-        when 'Op'
-          skip_count += 2
-        when 'Value'
-          # ignore chai expect()
-          is_chai = false
+    switch node_type
+      # Classes are objects, so we need to pass through their guts
+      # Parens just make an extra block which is useless to look at
+      when 'Class', 'Parens'
+        break
+      else
 
-          child.eachChild (c)=>
-            if getNodeType(c) is 'Call'
-              c.eachChild (cc)=>
-                if getNodeType(cc) is 'Value'
-                  switch cc.base.value
-                    when 'assert', 'expect', 'should'
-                      is_chai = true
-                      return false
-                return
-            return
+        body_keys = ['body', 'elseBody']
 
-          if not is_chai
-            err = @astApi.createError
-              lineNumber: child.locationData.first_line + 1
-            @errors.push err
-        else
-          child.eachChild (c)=>
-            @lintNode c
-            return
+        for body_key in body_keys
+
+          if node[body_key]
+
+            # break out if it's an assignment on If or Switch
+            # todo: this is ugly. figure out how to pass assignment down the chain correctly
+            if ['If', 'Switch'].indexOf(node_type) != -1
+              if getNodeType(stack[stack.length - 2]) is 'Assign'
+                break
+
+            # if we're auto returning the last statement, we need to skip over it in our bad expressions check
+            last_node = null
+
+            switch node_type
+              when 'Code'
+                last_node = node[body_key].lastNonComment(node[body_key].expressions)
+
+            node[body_key].eachChild (child)=>
+              if child isnt last_node
+                @lintBodyChild child
+              return
+
+    node.eachChild (child)=>
+      @lintNode child, stack
       return
     return
 
-  lintNode: (node) ->
-    node_name = getNodeType node
+  lintBodyChild: (node)->
+    if @isBadChild(node)
+#      console.log 'BAD NODE', getNodeType(node)
+      @throwError node
+    return
 
-    # starting a code block
-    switch node_name
-      when 'Block'
-        @lintBlock node
+  isBadChild: (node)->
+    node_type = getNodeType(node)
+    switch node_type
       when 'Code'
-        node.eachChild (child)=>
-          if getNodeType(child) is 'Block'
-            @lintNode child
-          return
+        return true
+      when 'Value'
+        var_name = node.base?.variable?.base?.value
+        if var_skip_arr.indexOf(var_name) != -1
+          return false
+        return true
+    return false
 
+  throwError: (node)->
+    err = @astApi.createError
+      lineNumber: node.locationData.first_line + 1
+    @errors.push err
     return
