@@ -15,7 +15,8 @@ dumpStack = (stack)->
     out.push getNodeType(i)
   return out
 
-var_skip_arr = ['expect', 'assert']
+# todo: make this a configuration option
+var_skip_arr = ['expect', 'assert', 'should']
 
 # CodeFragment, Base, Block, Literal, Undefined, Null, Bool, Return, Value, Comment, Call, Extends, Access, Index, Range, Slice, Obj, Arr, Class, Assign, Code, Param, Splat, Expansion, While, Op, In, Try, Throw, Existence, Parens, For, Switch, If,
 

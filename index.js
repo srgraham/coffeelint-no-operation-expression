@@ -25,7 +25,7 @@
     return out;
   };
 
-  var_skip_arr = ['expect', 'assert'];
+  var_skip_arr = ['expect', 'assert', 'should'];
 
   module.exports = NoOperationExpression = (function() {
     function NoOperationExpression() {}
