@@ -1,6 +1,6 @@
 {
   "name": "coffeelint-no-operation-expression",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Coffeelint rule that detects code that doesn't do anything",
   "main": "index.js",
   "scripts": {
